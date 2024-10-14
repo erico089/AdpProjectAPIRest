@@ -1,4 +1,4 @@
-package com.example.RestAPIClient;
+package com.example.demo.RestAPIClient;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
