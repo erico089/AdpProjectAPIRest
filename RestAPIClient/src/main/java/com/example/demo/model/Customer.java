@@ -28,7 +28,6 @@ public class Customer {
 	}
 
 	public String toJSON(){
-		// return "{\"id:\"" + id + ", \"name:\"" + name + ", \"password:\"" + password + ", \"email:\"" + email + " }";
 		return "{\"id\":" + id + ", \"name\":\"" + name + "\", \"password\":\"" + password + "\", \"email\":\"" + email + "\" }";
 	}
 	

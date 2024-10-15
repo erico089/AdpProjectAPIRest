@@ -44,6 +44,21 @@ public class CustomerAPI {
 		.orElse(ResponseEntity.notFound().build());
 	}
 
+	@GetMapping("/byname/{username}")
+	public ResponseEntity<?> getCustomerByName(@PathVariable("username") String username) {
+		try {
+			Optional<Customer> customerOptional = customerRepository.findByUsername(username);
+
+			if (customerOptional.isPresent()) {
+				return ResponseEntity.ok(customerOptional.get());
+			} else {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("A user with this username doesn't exists");
+			}
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("A user with this username doesn't exists");
+		}
+	}
+
 	@PostMapping
     public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
 		if (customer == null || customer.getName() == null || customer.getName().isEmpty() || 
@@ -56,7 +71,7 @@ public class CustomerAPI {
 			Optional<Integer> oldestId = customerRepository.findOldestCustomerId();
 		
 			if (oldestId.isPresent()) {
-				customer.setId(4 + 1);
+				customer.setId(oldestId.get() + 1);
 			} else {
 				customer.setId(1);
 			}
