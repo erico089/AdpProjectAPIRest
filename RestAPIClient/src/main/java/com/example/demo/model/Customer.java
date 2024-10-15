@@ -7,18 +7,19 @@ public class Customer {
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-	long id;
+	Integer id;
 
 	@Column(name="CUSTOMER_NAME")
 	String name;
 
 	String password;
-	
+
 	String email;
 
+	public Customer() {
+    }
 	
-	
-	public Customer(long id, String name, String password, String email) {
+	public Customer(Integer id, String name, String password, String email) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -31,11 +32,11 @@ public class Customer {
 		return "{\"id\":" + id + ", \"name\":\"" + name + "\", \"password\":\"" + password + "\", \"email\":\"" + email + "\" }";
 	}
 	
-	public long getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

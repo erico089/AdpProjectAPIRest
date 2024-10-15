@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 public interface CustomerRepository extends CrudRepository<Customer, Long> {
-    // @Query("SELECT MIN(c.id) FROM Customer c")
-    // Optional<Long> findOldestCustomerId();
+    @Query("SELECT MAX(c.id) FROM Customer c")
+    Optional<Integer> findOldestCustomerId();
 }
