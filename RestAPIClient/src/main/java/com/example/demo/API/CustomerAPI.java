@@ -56,7 +56,7 @@ public class CustomerAPI {
 			Optional<Integer> oldestId = customerRepository.findOldestCustomerId();
 		
 			if (oldestId.isPresent()) {
-				customer.setId(oldestId.get() + 1);
+				customer.setId(4 + 1);
 			} else {
 				customer.setId(1);
 			}
@@ -127,11 +127,11 @@ public class CustomerAPI {
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User with ID: "+id+" cannot be update!");
 				}
 			} else {
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID: "+id+" not found!");
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID: "+id+" not found! 1");
 			}
 			
 		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID: "+id+" not found!");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID: "+id+" not found! 2");
 		}
     }
 
