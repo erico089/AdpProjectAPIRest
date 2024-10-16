@@ -36,7 +36,9 @@ public class CustomerAPI {
 
 	@GetMapping
 	public ResponseEntity<?> getAll(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-		if (JWTHelper.verifyToken(token)){
+
+		token = fixHeaderToken(token);
+		if (!JWTHelper.verifyToken(token)){
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 		} 
 
@@ -51,7 +53,9 @@ public class CustomerAPI {
 
 	@GetMapping("/{customerId}")
 	public ResponseEntity<Customer> getCustomerById(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("customerId") long id) {
-		if (JWTHelper.verifyToken(token)){
+		
+		token = fixHeaderToken(token);
+		if (!JWTHelper.verifyToken(token)){
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 		}
 		return customerRepository.findById(id)
@@ -61,7 +65,9 @@ public class CustomerAPI {
 
 	@GetMapping("/byname/{username}")
 	public ResponseEntity<?> getCustomerByName(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("username") String username) {
-		if (JWTHelper.verifyToken(token)){
+		
+		token = fixHeaderToken(token);
+		if (!JWTHelper.verifyToken(token)){
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 		}
 		try {
@@ -79,7 +85,9 @@ public class CustomerAPI {
 
 	@PostMapping
     public ResponseEntity<?> createCustomer(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@RequestBody Customer customer) {
-		if (JWTHelper.verifyToken(token)){
+		
+		token = fixHeaderToken(token);
+		if (!JWTHelper.verifyToken(token)){
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 		}
 
@@ -116,7 +124,9 @@ public class CustomerAPI {
 
 	@DeleteMapping("/{customerId}")
 	public ResponseEntity<?> deleteCustomerById(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("customerId") long id) {
-		if (JWTHelper.verifyToken(token)){
+		
+		token = fixHeaderToken(token);
+		if (!JWTHelper.verifyToken(token)){
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 		}
 
@@ -147,7 +157,9 @@ public class CustomerAPI {
 	
 	@PutMapping("/{id}")
     public ResponseEntity<?> updateCustomer(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("id") Long id, @RequestBody Customer updatedCustomer) {
-		if (JWTHelper.verifyToken(token)){
+		
+		token = fixHeaderToken(token);
+		if (!JWTHelper.verifyToken(token)){
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 		}
 
@@ -191,11 +203,14 @@ public class CustomerAPI {
 		}
     }
 
-	private boolean isAdmin(String token){
+	private String fixHeaderToken(String token) {
 		if (token != null && token.startsWith("Bearer ")) {
 			token = token.substring(7); 
 		}
+		return token;
+	}
 
+	private boolean isAdmin(String token){
 		Map<String,Claim> claims = JWTHelper.getClaims(token);
 		if (claims == null) {
             return false;
