@@ -39,8 +39,8 @@ public class CustomerAPI {
 
 		token = fixHeaderToken(token);
 		if (!JWTHelper.verifyToken(token)){
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-		} 
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+		}
 
 		try {
 			Iterable<Customer> customers = customerRepository.findAll();
@@ -52,11 +52,11 @@ public class CustomerAPI {
 
 
 	@GetMapping("/{customerId}")
-	public ResponseEntity<Customer> getCustomerById(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("customerId") long id) {
+	public ResponseEntity<?> getCustomerById(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("customerId") long id) {
 		
 		token = fixHeaderToken(token);
 		if (!JWTHelper.verifyToken(token)){
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
 		}
 		return customerRepository.findById(id)
 		.map(ResponseEntity::ok)
@@ -68,7 +68,7 @@ public class CustomerAPI {
 		
 		token = fixHeaderToken(token);
 		if (!JWTHelper.verifyToken(token)){
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
 		}
 		try {
 			Optional<Customer> customerOptional = customerRepository.findByUsername(username);
@@ -88,11 +88,11 @@ public class CustomerAPI {
 		
 		token = fixHeaderToken(token);
 		if (!JWTHelper.verifyToken(token)){
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
 		}
 
 		if(!isAdmin(token)) {
-			return ResponseEntity.badRequest().body("Invalid request for this token");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid user for this operation");
 		}
 
 		if (customer == null || customer.getName() == null || customer.getName().isEmpty() || 
@@ -127,11 +127,11 @@ public class CustomerAPI {
 		
 		token = fixHeaderToken(token);
 		if (!JWTHelper.verifyToken(token)){
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
 		}
 
 		if(!isAdmin(token)) {
-			return ResponseEntity.badRequest().body("Invalid request for this token");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid user for this operation");
 		}
 
 		try {
@@ -160,11 +160,10 @@ public class CustomerAPI {
 		
 		token = fixHeaderToken(token);
 		if (!JWTHelper.verifyToken(token)){
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
 		}
-
 		if(!isAdmin(token)) {
-			return ResponseEntity.badRequest().body("Invalid request for this token");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid user for this operation");
 		}
 
 		if (updatedCustomer.getEmail().isEmpty() && updatedCustomer.getName().isEmpty()) {

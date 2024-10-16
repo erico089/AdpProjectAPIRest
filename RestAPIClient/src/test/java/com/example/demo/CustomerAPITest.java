@@ -32,74 +32,130 @@ public class CustomerAPITest {
 
     public static String adminToken;
     public static String userToken;
+    public static String fakeToken;
 
 
     static {
         adminToken = JWTHelper.createToken("com.webage.auth.apis");
         userToken = JWTHelper.createToken("com.webage.data.apis"); 
+        fakeToken = "SillyToken";
     }
 
     @Test
-    public void testGetCustomerById_Success() {
-        // Arrange
+    public void testGetCustomerById_AdminToken_Success() {
         Integer customerId = 1;
         Customer customer = new Customer();
         customer.setId(customerId);
-        customer.setName("John Doe");
-        customer.setEmail("john.doe@example.com");
+        customer.setName("Eric Casanovas");
+        customer.setEmail("eric.casanovas@example.com");
 
         when(customerRepository.findById((long) customerId)).thenReturn(Optional.of(customer));
 
-        // Act
-        ResponseEntity<Customer> response = customerAPI.getCustomerById("Bearer token", customerId);
+        ResponseEntity<?> response = customerAPI.getCustomerById(adminToken, customerId);
 
-        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(customer, response.getBody());
+    }
+
+    @Test
+    public void testGetCustomerById_FakeToken_NotAuthorizated() {
+        Integer customerId = 1;
+        Customer customer = new Customer();
+        customer.setId(customerId);
+        customer.setName("Eric Casanovas");
+        customer.setEmail("eric.casanovas@example.com");
+
+        when(customerRepository.findById((long) customerId)).thenReturn(Optional.of(customer));
+
+        ResponseEntity<?> response = customerAPI.getCustomerById(fakeToken, customerId);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetCustomerById_NonAdminToken_Succes() {
+        Integer customerId = 1;
+        Customer customer = new Customer();
+        customer.setId(customerId);
+        customer.setName("Eric Casanovas");
+        customer.setEmail("eric.casanovas@example.com");
+
+        when(customerRepository.findById((long) customerId)).thenReturn(Optional.of(customer));
+
+        ResponseEntity<?> response = customerAPI.getCustomerById(userToken, customerId);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(customer, response.getBody());
     }
 
     @Test
     public void testGetCustomerById_NotFound() {
-        // Arrange
+        
         long customerId = 1L;
 
         when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
 
-        // Act
-        ResponseEntity<Customer> response = customerAPI.getCustomerById("Bearer token", customerId);
+        ResponseEntity<?> response = customerAPI.getCustomerById(adminToken, customerId);
 
-        // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
-    public void testCreateCustomer_Success() {
-        // Arrange
+    public void testCreateCustomer_AdminToken_Success() {
+
         Customer customer = new Customer();
-        customer.setName("Jane Doe");
-        customer.setEmail("jane.doe@example.com");
+        customer.setName("Eric Casanovas");
+        customer.setEmail("eric.casanovas@example.com");
         customer.setPassword("password");
 
         when(customerRepository.findOldestCustomerId()).thenReturn(Optional.of(1));
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+   
+        ResponseEntity<?> response = customerAPI.createCustomer(adminToken, customer);
 
-        // Act
-        ResponseEntity<?> response = customerAPI.createCustomer(JWTHelper.createToken("com.webage.auth.apis"), customer);
-
-        // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(customer, response.getBody());
     }
 
     @Test
+    public void testCreateCustomer_FakeToken_NoAuth() {
+
+        Customer customer = new Customer();
+        customer.setName("Eric Casanovas");
+        customer.setEmail("eric.casanovas@example.com");
+        customer.setPassword("password");
+
+        when(customerRepository.findOldestCustomerId()).thenReturn(Optional.of(1));
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+   
+        ResponseEntity<?> response = customerAPI.createCustomer(fakeToken, customer);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testCreateCustomer_NonAdminToken_NoAuth() {
+
+        Customer customer = new Customer();
+        customer.setName("Eric Casanovas");
+        customer.setEmail("eric.casanovas@example.com");
+        customer.setPassword("password");
+
+        when(customerRepository.findOldestCustomerId()).thenReturn(Optional.of(1));
+        when(customerRepository.save(any(Customer.class))).thenReturn(customer);
+   
+        ResponseEntity<?> response = customerAPI.createCustomer(userToken, customer);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        }
+
+    @Test
     public void testCreateCustomer_BadRequest() {
-        // Arrange
-        Customer customer = new Customer(); // Missing required fields
+        
+        Customer customer = new Customer();
 
-        // Act
-        ResponseEntity<?> response = customerAPI.createCustomer("Bearer token", customer);
+        ResponseEntity<?> response = customerAPI.createCustomer(adminToken, customer);
 
-        // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 }
