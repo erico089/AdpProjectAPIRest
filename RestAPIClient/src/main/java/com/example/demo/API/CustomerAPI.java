@@ -1,7 +1,12 @@
 package com.example.demo.API;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.Claim;
+import com.example.demo.JWTHelper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,8 +18,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+
 
 import com.example.demo.model.Customer;
 import com.example.demo.repository.CustomerRepository;
@@ -27,7 +35,11 @@ public class CustomerAPI {
 	private CustomerRepository customerRepository;
 
 	@GetMapping
-	public ResponseEntity<?> getAll() {
+	public ResponseEntity<?> getAll(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+		if (JWTHelper.verifyToken(token)){
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+		} 
+
 		try {
 			Iterable<Customer> customers = customerRepository.findAll();
 			return ResponseEntity.ok( customers );
@@ -38,14 +50,20 @@ public class CustomerAPI {
 
 
 	@GetMapping("/{customerId}")
-	public ResponseEntity<Customer> getCustomerById(@PathVariable("customerId") long id) {
+	public ResponseEntity<Customer> getCustomerById(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("customerId") long id) {
+		if (JWTHelper.verifyToken(token)){
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+		}
 		return customerRepository.findById(id)
 		.map(ResponseEntity::ok)
 		.orElse(ResponseEntity.notFound().build());
 	}
 
 	@GetMapping("/byname/{username}")
-	public ResponseEntity<?> getCustomerByName(@PathVariable("username") String username) {
+	public ResponseEntity<?> getCustomerByName(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("username") String username) {
+		if (JWTHelper.verifyToken(token)){
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+		}
 		try {
 			Optional<Customer> customerOptional = customerRepository.findByUsername(username);
 
@@ -60,7 +78,15 @@ public class CustomerAPI {
 	}
 
 	@PostMapping
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
+    public ResponseEntity<?> createCustomer(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@RequestBody Customer customer) {
+		if (JWTHelper.verifyToken(token)){
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+		}
+
+		if(!isAdmin(token)) {
+			return ResponseEntity.badRequest().body("Invalid request for this token");
+		}
+
 		if (customer == null || customer.getName() == null || customer.getName().isEmpty() || 
 			customer.getEmail() == null || customer.getEmail().isEmpty() || customer.getPassword() == null || customer.getPassword().isEmpty()) {
 			
@@ -89,8 +115,15 @@ public class CustomerAPI {
     }
 
 	@DeleteMapping("/{customerId}")
-	public ResponseEntity<?> deleteCustomerById(@PathVariable("customerId") long id) {
-		
+	public ResponseEntity<?> deleteCustomerById(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("customerId") long id) {
+		if (JWTHelper.verifyToken(token)){
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+		}
+
+		if(!isAdmin(token)) {
+			return ResponseEntity.badRequest().body("Invalid request for this token");
+		}
+
 		try {
 			Optional<Customer> deletedCustomerOptional = customerRepository.findById(id);
 
@@ -113,7 +146,15 @@ public class CustomerAPI {
 	}
 	
 	@PutMapping("/{id}")
-    public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer) {
+    public ResponseEntity<?> updateCustomer(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,@PathVariable("id") Long id, @RequestBody Customer updatedCustomer) {
+		if (JWTHelper.verifyToken(token)){
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+		}
+
+		if(!isAdmin(token)) {
+			return ResponseEntity.badRequest().body("Invalid request for this token");
+		}
+
 		if (updatedCustomer.getEmail().isEmpty() && updatedCustomer.getName().isEmpty()) {
 			return ResponseEntity.badRequest().body("Both email and name are empty");
 		}
@@ -149,5 +190,22 @@ public class CustomerAPI {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID: "+id+" not found! 2");
 		}
     }
+
+	private boolean isAdmin(String token){
+		if (token != null && token.startsWith("Bearer ")) {
+			token = token.substring(7); 
+		}
+
+		Map<String,Claim> claims = JWTHelper.getClaims(token);
+		if (claims == null) {
+            return false;
+        }
+		
+        Claim scopeClaim = claims.get("scopes"); 
+        if (scopeClaim == null || !"com.webage.auth.apis".equals(scopeClaim.asString())) {
+            return false;
+        }
+		return true;
+	}
 
 }
