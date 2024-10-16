@@ -1,4 +1,6 @@
 package com.example.demo.model;
+import java.util.Objects;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -26,6 +28,22 @@ public class Customer {
 		this.password = password;
 		this.email = email;
 	}
+
+	@Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Customer)) return false;
+        Customer customer = (Customer) o;
+        return Objects.equals(id, customer.id) &&
+                Objects.equals(name, customer.name) &&
+                Objects.equals(password, customer.password) &&
+                Objects.equals(email, customer.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, password, email);
+    }
 
 	public String toJSON(){
 		return "{\"id\":" + id + ", \"name\":\"" + name + "\", \"password\":\"" + password + "\", \"email\":\"" + email + "\" }";
